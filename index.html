@@ -4,522 +4,975 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>退休試算器</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Raleway:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Press+Start+2P&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#efefef;--surface:#efefef;--card:#efefef;--card2:#efefef;
-  --input:#d7d7d7;--border:rgba(0,0,0,0.08);
-  --accent:#d05c28;--accent-light:#fce4d0;
-  --text:#191510;--muted:#9c9188;--secondary:#64594e;
-  --success:#7a8a4f;--danger:#8a2622;--gold:#dea377;--teal:#9db9c3;--purple:#b28fe7;
-  --accent2:#d5dcb5;
-  --r:18px;--r-sm:10px;--r-lg:26px;
-  --sh:0 2px 4px rgba(0,0,0,0.04),0 6px 20px rgba(0,0,0,0.07);
+  --win-bg: #c0c0c0;
+  --win-dark: #808080;
+  --win-darker: #404040;
+  --win-light: #ffffff;
+  --win-black: #000000;
+  --win-blue: #000080;
+  --win-blue-light: #1084d0;
+  --teal-bg: #008080;
+  --term-green: #00ff66;
+  --term-bg: #050505;
+  --accent-amber: #e69138;
+  --accent-red: #cc0000;
+  --accent-blue: #0055ff;
+  --accent-purple: #7a378b;
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-mono: 'Share Tech Mono', 'Noto Sans TC', monospace;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Inter','Noto Sans TC',sans-serif;min-height:100vh;font-size:14px;line-height:1.5;}
 
-.hero{background:linear-gradient(135deg,#9db9c3 0%,#dea377 60%,#d05c28 100%);padding:44px 24px 38px;position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");pointer-events:none;}
-.hero-inner{max-width:980px;margin:0 auto;position:relative;z-index:1;}
-.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
-.hero-title{font-size:clamp(32px,6vw,56px);font-weight:300;color:rgba(255,255,255,0.95);line-height:1.05;letter-spacing:-0.03em;}
-.hero-title strong{font-weight:600;}
-.hero-sub{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-top:8px;}
-.lang-wrap{display:flex;background:rgba(255,255,255,0.18);border-radius:100px;padding:3px;gap:2px;backdrop-filter:blur(8px);}
-.lang-btn{background:none;border:none;color:rgba(255,255,255,0.7);font-family:inherit;font-size:12px;font-weight:500;padding:5px 14px;cursor:pointer;border-radius:100px;transition:all .2s;}
-.lang-btn.active{background:rgba(255,255,255,0.9);color:var(--accent);}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-.container{max-width:980px;margin:0 auto;padding:20px 16px 80px;}
+body {
+  background-color: var(--teal-bg);
+  background-image: 
+    radial-gradient(#006666 18%, transparent 19%),
+    radial-gradient(#006666 18%, transparent 19%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+  color: var(--win-black);
+  font-family: var(--font-mono);
+  min-height: 100vh;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 18px 10px 40px;
+}
 
-.mode-toggle{background:var(--card2);border-radius:14px;padding:4px;display:flex;gap:3px;margin-bottom:14px;}
-.mode-btn{flex:1;background:none;border:none;color:var(--muted);font-family:inherit;font-size:12px;font-weight:500;padding:10px 16px;cursor:pointer;border-radius:11px;transition:all .2s;}
-.mode-btn.active{background:var(--card);color:var(--accent);box-shadow:var(--sh);}
-.mode-btn:disabled{opacity:.4;cursor:not-allowed;}
+/* CRT 螢幕掃描線濾鏡微光 */
+body::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%);
+  background-size: 100% 4px;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 0.55;
+}
 
-.layout{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
-.social-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
-@media(max-width:680px){.layout,.social-grid,.result-grid,.breakdown-grid{grid-template-columns:1fr!important;}}
+/* 主視窗容器 */
+.win-window {
+  max-width: 1040px;
+  margin: 0 auto;
+  background: var(--win-bg);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-black);
+  border-bottom: 2px solid var(--win-black);
+  box-shadow: 2px 2px 0 var(--win-darker), 6px 6px 20px rgba(0,0,0,0.6);
+}
 
-.card{background:var(--card);border-radius:var(--r);padding:22px;box-shadow:var(--sh);}
-.card-full{background:var(--card);border-radius:var(--r);padding:20px 24px;margin-bottom:12px;box-shadow:var(--sh);}
-.slabel{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-.slabel::after{content:'';flex:1;height:1px;background:var(--border);}
-.sdiv{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin:14px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+/* 標題列 */
+.win-titlebar {
+  background: linear-gradient(90deg, var(--win-blue), var(--win-blue-light));
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+  font-family: var(--font-pixel);
+  font-size: 11px;
+}
 
-.field{margin-bottom:14px;}
-.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;letter-spacing:.04em;font-weight:500;}
-.field input,.field select{width:100%;background:var(--input);border:none;border-radius:var(--r-sm);color:var(--text);font-family:inherit;font-size:14px;padding:10px 13px;outline:none;transition:all .2s;-webkit-appearance:none;}
-.field input:focus,.field select:focus{outline:2px solid var(--accent);outline-offset:0;background:var(--card);}
-.field input::placeholder{color:var(--muted);}
-.field input:disabled{opacity:.35;cursor:not-allowed;}
-.field .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;}
+.win-title-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;background:transparent;outline:none;margin-top:8px;cursor:pointer;height:27px;padding:5px 13px;box-sizing:border-box;}
-input[type=range]::-webkit-slider-runnable-track{height:4px;background:rgba(208,92,40,0.2);border-radius:999px;border:none;}
-input[type=range]::-moz-range-track{height:4px;background:rgba(208,92,40,0.2);border-radius:999px;border:none;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;background:var(--accent);border-radius:50%;cursor:pointer;box-shadow:0 1px 6px rgba(208,92,40,0.35);border:none;margin-top:-6.5px;}
-input[type=range]::-moz-range-thumb{width:17px;height:17px;background:var(--accent);border-radius:50%;cursor:pointer;box-shadow:0 1px 6px rgba(208,92,40,0.35);border:none;}
-.range-row{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;}
-.range-val{font-size:15px;font-weight:500;color:var(--accent);margin-top:2px;}
+.win-controls {
+  display: flex;
+  gap: 3px;
+}
 
-.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-.toggle-label{font-size:12px;color:var(--text);font-weight:500;flex:1;}
-.toggle{position:relative;width:38px;height:21px;flex-shrink:0;}
-.toggle input{opacity:0;width:0;height:0;position:absolute;}
-.toggle-track{position:absolute;inset:0;background:var(--input);border-radius:21px;cursor:pointer;transition:.2s;}
-.toggle-track::before{content:'';position:absolute;width:15px;height:15px;background:white;border-radius:50%;top:3px;left:3px;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
-.toggle input:checked+.toggle-track{background:var(--accent);}
-.toggle input:checked+.toggle-track::before{transform:translateX(17px);}
+.win-btn {
+  background: var(--win-bg);
+  border-top: 1.5px solid var(--win-light);
+  border-left: 1.5px solid var(--win-light);
+  border-right: 1.5px solid var(--win-black);
+  border-bottom: 1.5px solid var(--win-black);
+  width: 18px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: bold;
+  cursor: pointer;
+  color: black;
+  font-family: monospace;
+}
+.win-btn:active {
+  border-top: 1.5px solid var(--win-black);
+  border-left: 1.5px solid var(--win-black);
+  border-right: 1.5px solid var(--win-light);
+  border-bottom: 1.5px solid var(--win-light);
+}
 
-.calc-preview{background:var(--accent-light);border-radius:var(--r-sm);padding:10px 13px;margin-top:8px;}
-.calc-preview .cp-label{font-size:10px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;opacity:.7;}
-.calc-preview .cp-val{font-size:14px;font-weight:600;color:var(--accent);}
+/* 工具選單列 */
+.win-menubar {
+  background: var(--win-bg);
+  border-bottom: 1px solid var(--win-dark);
+  padding: 4px 8px;
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+}
+.win-menu-item {
+  cursor: pointer;
+  padding: 1px 6px;
+}
+.win-menu-item:hover {
+  background: var(--win-blue);
+  color: white;
+}
 
-.portfolio-row{display:grid;grid-template-columns:1fr 90px 72px 28px;gap:5px;margin-bottom:5px;align-items:center;}
-.portfolio-row input{background:var(--input);border:none;border-radius:var(--r-sm);color:var(--text);font-family:inherit;font-size:13px;padding:7px 10px;outline:none;width:100%;transition:all .2s;}
-.portfolio-row input:focus{outline:2px solid var(--accent);background:var(--card);}
-.curr-toggle{display:flex;background:var(--input);border-radius:7px;overflow:hidden;height:33px;}
-.curr-btn{flex:1;background:none;border:none;font-size:10px;font-weight:600;padding:0 5px;cursor:pointer;color:var(--muted);font-family:inherit;transition:all .2s;letter-spacing:.04em;}
-.curr-btn.active{background:var(--accent);color:white;}
-.remove-btn{background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:13px;width:28px;height:33px;display:flex;align-items:center;justify-content:center;border-radius:7px;transition:all .2s;}
-.remove-btn:hover{border-color:var(--danger);color:var(--danger);}
-.add-btn{background:none;border:1.5px dashed var(--border);color:var(--muted);font-family:inherit;font-size:12px;padding:7px 12px;cursor:pointer;width:100%;border-radius:var(--r-sm);transition:all .2s;margin-top:4px;}
-.add-btn:hover{border-color:var(--teal);color:var(--teal);}
-.ticker-wrap{display:flex;flex-direction:column;gap:3px;}
-.price-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:100px;display:inline-flex;align-items:center;width:fit-content;letter-spacing:.02em;}
-.price-badge.ok{background:rgba(122,138,79,0.12);color:#7a8a4f;}
-.price-badge.loading{background:var(--input);color:var(--muted);animation:pbpulse 1s ease-in-out infinite;}
-.price-badge.error{background:rgba(138,38,34,0.08);color:#8a2622;}
-@keyframes pbpulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-.price-refresh-btn{background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:12px;padding:1px 8px;border-radius:6px;font-family:inherit;transition:all .2s;line-height:1.4;flex-shrink:0;}
-.price-refresh-btn:hover{border-color:var(--teal);color:var(--teal);}
-.price-refresh-btn:disabled{opacity:.4;cursor:not-allowed;}
-.portfolio-total{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:8px 2px;border-top:1px solid var(--border);margin-top:6px;}
-.portfolio-total .pt-label{color:var(--muted);}
-.portfolio-total .pt-val{font-weight:600;color:var(--accent);}
+/* 視窗主體 */
+.win-body {
+  padding: 14px;
+}
 
-.social-badge{display:inline-block;font-size:10px;letter-spacing:.1em;font-weight:500;text-transform:uppercase;background:var(--accent);color:#fff;border-radius:100px;padding:3px 10px;margin-bottom:12px;}
-.social-section{display:none;}
-.social-section.visible{display:block;}
+/* 復古立體群組 Fieldset */
+fieldset.retro-group {
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  padding: 14px;
+  margin-bottom: 12px;
+  background: var(--win-bg);
+}
+legend.retro-legend {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  padding: 0 6px;
+  color: var(--win-blue);
+  font-weight: bold;
+}
 
-.calc-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--r);padding:16px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;transition:all .2s;box-shadow:0 4px 16px rgba(208,92,40,0.3);}
-.calc-btn:hover{background:#c05020;transform:translateY(-1px);box-shadow:0 6px 24px rgba(208,92,40,0.4);}
-.calc-btn:active{transform:scale(.99);}
+/* 標題與分隔線 */
+.slabel {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: var(--win-blue);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.slabel::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  border-bottom: 1px dashed var(--win-dark);
+}
+.sdiv {
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  color: #333;
+  margin: 14px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--win-dark);
+}
 
-#results{display:none;}
-.result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
-.result-card{background:var(--card);border-radius:var(--r);padding:18px 16px;box-shadow:var(--sh);position:relative;overflow:hidden;}
-.result-dot{position:absolute;top:14px;right:14px;width:10px;height:10px;border-radius:50%;}
-.result-dot.d-orange{background:var(--accent);}
-.result-dot.d-teal{background:var(--teal);}
-.result-dot.d-gold{background:var(--gold);}
-.result-dot.d-purple{background:var(--purple);}
-.result-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;font-weight:500;}
-.result-value{font-size:clamp(18px,3vw,28px);font-weight:600;color:var(--text);line-height:1.1;}
-.result-sym{font-size:12px;color:var(--muted);font-weight:400;margin-right:1px;}
-.result-sub{font-size:10px;color:var(--muted);margin-top:6px;}
+/* 格線佈局 */
+.layout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.social-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+@media(max-width:768px){
+  .layout, .social-grid, .result-grid, .breakdown-grid { grid-template-columns: 1fr !important; }
+}
 
-.gap-banner{padding:16px 22px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-radius:var(--r);box-shadow:var(--sh);}
-.gap-banner.ok{background:rgba(40,122,88,0.08);border:1px solid rgba(40,122,88,0.18);}
-.gap-banner.warn{background:rgba(184,48,40,0.08);border:1px solid rgba(184,48,40,0.18);}
-.gap-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;}
-.gap-amount{font-size:30px;font-weight:600;}
-.gap-amount.ok{color:var(--success);}
-.gap-amount.warn{color:var(--danger);}
-.gap-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+/* 欄位與表單元素 (Sunken Input) */
+.field { margin-bottom: 12px; }
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  color: #111;
+  margin-bottom: 3px;
+}
+.field input, .field select {
+  width: 100%;
+  background: #fff;
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  color: #000;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 6px 8px;
+  outline: none;
+}
+.field input:focus, .field select:focus {
+  background: #ffffea;
+  outline: 1px dotted #000;
+}
+.field input:disabled { background: #d0d0d0; color: #888; cursor: not-allowed; }
+.field .hint { font-size: 11px; color: #555; margin-top: 3px; }
 
-.income-bar-panel{background:var(--card);border-radius:var(--r);padding:20px 22px;margin-bottom:12px;box-shadow:var(--sh);}
-.income-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12px;}
-.income-bar-label{width:110px;color:var(--muted);flex-shrink:0;}
-.income-bar-track{flex:1;height:5px;background:var(--input);border-radius:3px;overflow:hidden;}
-.income-bar-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.16,1,.3,1);}
-.income-bar-val{width:88px;text-align:right;font-size:12px;font-weight:500;flex-shrink:0;}
+/* 復古滑桿 */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  outline: none;
+  margin-top: 4px;
+  cursor: pointer;
+  height: 24px;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: #808080;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #fff;
+}
+input[type=range]::-moz-range-track {
+  height: 6px;
+  background: #808080;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #fff;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 24px;
+  background: var(--win-bg);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-darker);
+  border-bottom: 2px solid var(--win-darker);
+  margin-top: -9px;
+  cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 16px;
+  height: 24px;
+  background: var(--win-bg);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-darker);
+  border-bottom: 2px solid var(--win-darker);
+  cursor: pointer;
+}
+.range-row { display: flex; justify-content: space-between; font-size: 11px; color: #555; margin-top: 2px; }
+.range-val { font-family: var(--font-pixel); font-size: 11px; color: var(--win-blue); margin-top: 2px; }
 
-.timeline{background:var(--card);border-radius:var(--r);padding:20px 22px;margin-bottom:12px;box-shadow:var(--sh);}
-.tl-track{position:relative;height:4px;background:var(--input);border-radius:2px;margin:14px 0 8px;}
-.tl-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:2px;transition:width .8s cubic-bezier(.16,1,.3,1);}
-.tl-marker{position:absolute;top:-7px;width:18px;height:18px;background:var(--accent);border-radius:50%;transform:translateX(-50%);transition:left .8s cubic-bezier(.16,1,.3,1);box-shadow:0 2px 8px rgba(208,92,40,0.4);}
-.tl-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);}
-.tl-note{font-size:11px;color:var(--muted);margin-top:10px;}
+/* 復古立體按鈕 */
+.push-btn, .mode-btn, .lang-btn, .add-btn, .price-refresh-btn, .remove-btn {
+  background: var(--win-bg);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-black);
+  border-bottom: 2px solid var(--win-black);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  color: black;
+  outline: none;
+  padding: 4px 10px;
+}
+.push-btn:active, .mode-btn.active, .lang-btn.active, .add-btn:active, .price-refresh-btn:active, .remove-btn:active {
+  border-top: 2px solid var(--win-black);
+  border-left: 2px solid var(--win-black);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  background: #e2e2e2;
+}
 
-.chart-card{background:var(--card);border-radius:var(--r);padding:20px 22px;margin-bottom:12px;box-shadow:var(--sh);}
-canvas{width:100%!important;display:block;}
-.sc-tabs{display:flex;gap:6px;margin-bottom:14px;}
-.sc-tab{flex:1;background:var(--input);border:none;color:var(--muted);font-family:inherit;font-size:11px;font-weight:500;padding:7px;cursor:pointer;border-radius:8px;text-align:center;transition:all .2s;}
-.sc-tab.active-opt{background:rgba(222,163,119,0.18);color:var(--gold);}
-.sc-tab.active-base{background:rgba(157,185,195,0.22);color:var(--teal);}
-.sc-tab.active-pes{background:rgba(138,38,34,0.1);color:var(--danger);}
+/* 模式與語系按鈕列 */
+.mode-toggle { display: flex; gap: 4px; margin-bottom: 12px; }
+.lang-wrap { display: flex; gap: 4px; }
+.lang-btn.active { color: var(--win-blue); }
 
-.breakdown-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
-.bd-card{background:var(--card);border-radius:var(--r);padding:18px;box-shadow:var(--sh);}
-.bd-title{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
-.bd-title::after{content:'';flex:1;height:1px;background:var(--border);}
-.bd-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
-.bd-row:last-child{border-bottom:none;}
-.bd-lbl{color:var(--muted);}
-.bd-val{font-weight:500;}
-.v-orange{color:var(--accent);}.v-teal{color:var(--teal);}.v-gold{color:var(--gold);}
-.v-danger{color:var(--danger);}.v-purple{color:var(--purple);}.v-muted{color:var(--muted);}
-.v-success{color:var(--success);}
-.bd-val.is-zero{color:var(--muted);opacity:.55;}
+/* 核取方塊切換 */
+.toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.toggle-label { font-size: 12px; font-weight: bold; flex: 1; }
+.toggle { position: relative; width: 38px; height: 20px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute; inset: 0; background: #888;
+  border-top: 1px solid #000; border-left: 1px solid #000;
+  border-right: 1px solid #fff; border-bottom: 1px solid #fff;
+  cursor: pointer;
+}
+.toggle-track::before {
+  content: ''; position: absolute; width: 14px; height: 14px; background: var(--win-bg);
+  border-top: 1.5px solid var(--win-light); border-left: 1.5px solid var(--win-light);
+  border-right: 1.5px solid var(--win-darker); border-bottom: 1.5px solid var(--win-darker);
+  top: 2px; left: 2px; transition: .15s;
+}
+.toggle input:checked + .toggle-track { background: var(--win-blue); }
+.toggle input:checked + .toggle-track::before { transform: translateX(18px); }
 
-.note{font-size:11px;color:var(--muted);line-height:1.8;padding:16px 22px;background:var(--card);border-radius:var(--r);border-left:3px solid var(--border);box-shadow:var(--sh);}
-.fade-in{animation:fadeUp .4s ease both;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+/* 預覽 Sunken Panel */
+.calc-preview {
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  background: #d8d8d8;
+  padding: 8px 10px;
+  margin-top: 6px;
+}
+.calc-preview .cp-label { font-size: 11px; font-weight: bold; color: #444; }
+.calc-preview .cp-val { font-family: var(--font-pixel); font-size: 11px; color: var(--win-blue); margin-top: 3px; }
+
+/* 投資組合 */
+.portfolio-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 80px 28px;
+  gap: 5px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+.curr-toggle {
+  display: flex;
+  border-top: 1px solid var(--win-dark);
+  border-left: 1px solid var(--win-dark);
+  border-right: 1px solid var(--win-light);
+  border-bottom: 1px solid var(--win-light);
+  background: #aaa;
+}
+.curr-btn {
+  flex: 1; background: none; border: none; font-size: 10px; font-weight: bold;
+  padding: 3px 0; cursor: pointer; color: #222;
+}
+.curr-btn.active { background: var(--win-blue); color: #fff; }
+.remove-btn { color: var(--accent-red); font-weight: bold; height: 28px; }
+.add-btn { width: 100%; margin-top: 4px; }
+.ticker-wrap { display: flex; flex-direction: column; gap: 2px; }
+.price-badge {
+  font-size: 10px; padding: 1px 4px; border: 1px solid #777;
+  background: #eee; display: inline-block; font-family: monospace; width: fit-content;
+}
+.price-badge.ok { background: #e0ffd0; color: #006000; }
+.price-badge.loading { background: #ffffd0; animation: pbpulse 1s ease-in-out infinite; }
+.price-badge.error { background: #ffd0d0; color: #900; }
+@keyframes pbpulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+.price-refresh-btn { padding: 1px 6px; }
+.portfolio-total {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; padding: 6px 2px; border-top: 1px solid var(--win-dark); margin-top: 8px;
+}
+.portfolio-total .pt-val { font-family: var(--font-pixel); font-size: 11px; color: var(--win-blue); }
+
+.social-badge {
+  display: inline-block; font-family: var(--font-pixel); font-size: 9px;
+  background: var(--win-blue); color: #fff; padding: 2px 6px; margin-bottom: 8px;
+}
+.social-section { display: none; }
+.social-section.visible { display: block; }
+
+/* 執行試算按鈕 */
+.calc-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--win-blue);
+  color: #fff;
+  border-top: 2px solid #5a7fff;
+  border-left: 2px solid #5a7fff;
+  border-right: 2px solid #000030;
+  border-bottom: 2px solid #000030;
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--win-darker);
+}
+.calc-btn:active {
+  border-top: 2px solid #000030;
+  border-left: 2px solid #000030;
+  border-right: 2px solid #5a7fff;
+  border-bottom: 2px solid #5a7fff;
+}
+
+/* 計算結果區塊 (Terminal CRT HUD) */
+#results { display: none; }
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.result-card {
+  background: var(--term-bg);
+  border-top: 2px solid var(--win-darker);
+  border-left: 2px solid var(--win-darker);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  padding: 12px 10px;
+  color: var(--term-green);
+  text-shadow: 0 0 4px rgba(0,255,102,0.4);
+  position: relative;
+}
+.result-dot {
+  position: absolute; top: 8px; right: 8px; width: 6px; height: 6px;
+}
+.result-dot.d-orange { background: var(--accent-amber); }
+.result-dot.d-teal { background: #00cccc; }
+.result-dot.d-gold { background: #ffd700; }
+.result-dot.d-purple { background: #da70d6; }
+.result-label {
+  font-family: var(--font-pixel); font-size: 8px; color: #888; margin-bottom: 8px;
+}
+.result-value {
+  font-size: clamp(16px, 2.5vw, 24px); font-weight: bold; line-height: 1.1;
+}
+.result-sym { font-size: 12px; color: #888; font-weight: normal; margin-right: 2px; }
+.result-sub { font-size: 10px; color: #00aa44; margin-top: 4px; }
+
+/* 缺口橫幅 */
+.gap-banner {
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #d8d8d8;
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+}
+.gap-banner.ok { border-left: 8px solid #008000; }
+.gap-banner.warn { border-left: 8px solid var(--accent-red); }
+.gap-label { font-family: var(--font-pixel); font-size: 10px; }
+.gap-amount { font-family: var(--font-pixel); font-size: 18px; }
+.gap-amount.ok { color: #008000; }
+.gap-amount.warn { color: var(--accent-red); }
+.gap-sub { font-size: 11px; margin-top: 2px; }
+
+/* 收入來源長條圖 */
+.income-bar-panel, .timeline, .chart-card {
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  padding: 14px;
+  margin-bottom: 12px;
+  background: var(--win-bg);
+}
+.income-bar-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px;
+}
+.income-bar-label { width: 125px; font-weight: bold; flex-shrink: 0; }
+.income-bar-track {
+  flex: 1; height: 12px; background: #808080;
+  border-top: 1px solid #000; border-bottom: 1px solid #fff; padding: 1px;
+}
+.income-bar-fill { height: 100%; transition: width .6s ease; }
+.income-bar-val { width: 90px; text-align: right; font-weight: bold; flex-shrink: 0; }
+
+/* 時間軌道 */
+.tl-track {
+  position: relative; height: 8px; background: #808080;
+  border-top: 1px solid #000; border-bottom: 1px solid #fff; margin: 12px 0 6px;
+}
+.tl-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--win-blue); }
+.tl-marker {
+  position: absolute; top: -6px; width: 12px; height: 20px; background: var(--win-bg);
+  border-top: 2px solid var(--win-light); border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+  transform: translateX(-50%);
+}
+.tl-labels { display: flex; justify-content: space-between; font-size: 11px; color: #444; }
+.tl-note { font-size: 11px; font-weight: bold; color: var(--win-blue); margin-top: 6px; }
+
+/* 拆解清單 */
+.breakdown-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px;
+}
+.bd-card {
+  background: #d8d8d8;
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  padding: 12px;
+}
+.bd-title {
+  font-family: var(--font-pixel); font-size: 9px; color: var(--win-blue);
+  border-bottom: 1px solid #999; padding-bottom: 4px; margin-bottom: 8px;
+}
+.bd-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 0; border-bottom: 1px dotted #aaa; font-size: 12px;
+}
+.bd-lbl { color: #333; }
+.bd-val { font-weight: bold; }
+.v-orange { color: #a04000; }
+.v-teal { color: #006080; }
+.v-gold { color: #8a6d00; }
+.v-danger { color: var(--accent-red); }
+.v-purple { color: var(--accent-purple); }
+.v-muted { color: #777; }
+.v-success { color: #008000; }
+.bd-val.is-zero { opacity: .45; }
+
+/* 情境頁籤 */
+.sc-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.sc-tab {
+  flex: 1; background: var(--win-bg);
+  border-top: 2px solid var(--win-light); border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-black); border-bottom: 2px solid var(--win-black);
+  font-family: var(--font-mono); font-size: 11px; font-weight: bold; padding: 4px; cursor: pointer;
+}
+.sc-tab.active-opt { background: #ffe8cc; color: #a04000; border-top: 2px solid #000; border-left: 2px solid #000; }
+.sc-tab.active-base { background: #d0e8ff; color: var(--win-blue); border-top: 2px solid #000; border-left: 2px solid #000; }
+.sc-tab.active-pes { background: #ffd0d0; color: var(--accent-red); border-top: 2px solid #000; border-left: 2px solid #000; }
+
+.note {
+  font-size: 11px; color: #444; line-height: 1.5; padding: 10px 12px;
+  background: #e8e8e8; border-top: 1px solid var(--win-dark);
+  border-left: 1px solid var(--win-dark); border-right: 1px solid var(--win-light);
+  border-bottom: 1px solid var(--win-light); margin-bottom: 12px;
+}
+
+/* 狀態列 */
+.win-statusbar {
+  border-top: 1px solid var(--win-dark);
+  padding: 4px 6px;
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  background: var(--win-bg);
+}
+.win-status-cell {
+  border-top: 1px solid var(--win-dark);
+  border-left: 1px solid var(--win-dark);
+  border-right: 1px solid var(--win-light);
+  border-bottom: 1px solid var(--win-light);
+  padding: 2px 6px;
+  background: #d4d4d4;
+}
+
+canvas { width: 100% !important; display: block; background: #fff; border: 1px solid #777; }
 </style>
 </head>
 <body>
 
-<!-- file:// 警告橫幅 (HTTP server 時自動隱藏) -->
-<div id="file-protocol-warn" style="display:none;background:#8a2622;color:#fff;font-size:13px;text-align:center;padding:10px 16px;line-height:1.5;">
-  ⚠️ 目前以 <code>file://</code> 方式開啟，股票 API 會因瀏覽器安全限制而失敗。<br>
-  請改用 Dev Server：<strong>http://localhost:PORT/retirement-calculator-v14.html</strong>
+<!-- file:// 警告橫幅 -->
+<div id="file-protocol-warn" style="display:none;background:#8a2622;color:#fff;font-size:12px;text-align:center;padding:6px;font-family:var(--font-mono);">
+  ⚠️ 目前以 file:// 方式開啟，股票 API 會因瀏覽器安全限制而失敗。請改用本機伺服器：http://localhost:PORT/
 </div>
 
-<div class="hero">
-  <div class="hero-inner">
-    <div class="hero-top">
-      <div>
-        <div class="hero-title" style="letter-spacing: 5px; font-size: 40px">退休<strong style="font-weight: 300">試算器</strong></div>
-        <div class="hero-sub" style="font-family: Raleway; letter-spacing: 2px; font-weight: 300">Retirement Planner · v8</div>
+<div class="win-window">
+  <!-- 標題列 -->
+  <div class="win-titlebar">
+    <div class="win-title-text">
+      <span>💾</span>
+      <span>RETIREMENT_PLANNER.EXE [BUILD 2026.10]</span>
+    </div>
+    <div class="win-controls">
+      <button class="win-btn" aria-label="Minimize">_</button>
+      <button class="win-btn" aria-label="Maximize">□</button>
+      <button class="win-btn" onclick="alert('Retirement Calculator Active.')" aria-label="Close">×</button>
+    </div>
+  </div>
+
+  <!-- 選單工具列 -->
+  <div class="win-menubar">
+    <span class="win-menu-item">檔案 (<u>F</u>)</span>
+    <span class="win-menu-item" onclick="setLang('zh')">繁中模式 (<u>C</u>)</span>
+    <span class="win-menu-item" onclick="setLang('en')">English (<u>E</u>)</span>
+    <span class="win-menu-item" onclick="alert('Retro 90s OS Retirement Planner\nVersion 8.0')">關於 (<u>A</u>)</span>
+    <div class="lang-wrap" style="margin-left: auto;">
+      <button class="lang-btn active" onclick="setLang('zh')" id="btn-zh">中文</button>
+      <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+    </div>
+  </div>
+
+  <div class="win-body">
+
+    <!-- 模式選擇按鈕 -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-btn-contribution" onclick="setMode('contribution')" data-i18n="modeContrib">[●] 每月投入導向</button>
+      <button class="mode-btn" id="mode-btn-target" disabled title="即將推出" data-i18n="modeTarget">[ ] 目標導向（開發中）</button>
+    </div>
+
+    <!-- 主要設定區塊 -->
+    <div class="layout" id="settings-layout">
+
+      <!-- 左側：個人與既有資產 -->
+      <fieldset class="retro-group">
+        <legend class="retro-legend" data-i18n="sPersonal">▌ 個人設定 (PROFILE)</legend>
+
+        <div class="field">
+          <label data-i18n="lAge">現在年齡</label>
+          <input type="number" id="currentAge" value="29" min="18" max="70">
+        </div>
+        <div class="field">
+          <label data-i18n="lRetireAge">目標退休年齡</label>
+          <input type="number" id="retireAge" value="50" min="30" max="80" oninput="updateLaborPreview()">
+        </div>
+
+        <div class="sdiv" data-i18n="dStock">> 股票資產</div>
+        <div class="field">
+          <label data-i18n="lCurrentAssets">股票起始資產</label>
+          <input type="number" id="currentAssets" value="0" min="0">
+          <div class="hint" data-i18n="hCurrentAssets">目前持有的股票市值合計</div>
+        </div>
+
+        <div class="sdiv" data-i18n="dSavings">> 活存資產</div>
+        <div class="field">
+          <label data-i18n="lSavingsAssets">活存金額</label>
+          <input type="number" id="savingsAssets" value="200000" min="0">
+          <div class="hint" data-i18n="hSavingsAssets">隨時可動用，低利率成長</div>
+        </div>
+        <div class="field">
+          <label data-i18n="lSavingsRate">活存年利率</label>
+          <div class="range-val"><span id="savingsRateVal">0.8</span>%</div>
+          <input type="range" id="savingsRate" min="0" max="3" step="0.1" value="0.8" oninput="document.getElementById('savingsRateVal').textContent=parseFloat(this.value).toFixed(1)">
+          <div class="range-row"><span>0%</span><span>3%</span></div>
+        </div>
+
+        <div class="sdiv" data-i18n="dDeposit">> 定存資產</div>
+        <div class="field">
+          <label data-i18n="lDepositAssets">定存金額</label>
+          <input type="number" id="depositAssets" value="500000" min="0">
+          <div class="hint" data-i18n="hDepositAssets">鎖定期限，較高利率</div>
+        </div>
+        <div class="field">
+          <label data-i18n="lDepositRate">定存年利率</label>
+          <div class="range-val"><span id="depositRateVal">2.0</span>%</div>
+          <input type="range" id="depositRate" min="0" max="5" step="0.1" value="2.0" oninput="document.getElementById('depositRateVal').textContent=parseFloat(this.value).toFixed(1)">
+          <div class="range-row"><span>0%</span><span>5%</span></div>
+        </div>
+
+        <div class="sdiv" data-i18n="dCalc">> 計算設定</div>
+        <div class="field">
+          <label data-i18n="lCurrency">計算幣別</label>
+          <select id="currency" onchange="updatePortfolioTotal()">
+            <option value="TWD">TWD 新台幣</option>
+            <option value="USD">USD 美元</option>
+          </select>
+        </div>
+        <div class="field">
+          <label data-i18n="lExchangeRate">美元匯率 (USD/TWD)</label>
+          <input type="number" id="exchangeRate" value="32" min="1" oninput="updatePortfolioTotal()">
+          <div class="hint" data-i18n="hExchangeRate">用於換算美股投入金額</div>
+        </div>
+      </fieldset>
+
+      <!-- 右側：每月投入與提領參數 -->
+      <fieldset class="retro-group">
+        <legend class="retro-legend" data-i18n="sMonthly">▌ 每月投入設定 (CASHFLOW)</legend>
+
+        <div class="field">
+          <label data-i18n="lMonthlySavings">每月存入活存</label>
+          <input type="number" id="monthlySavings" value="5000" min="0">
+        </div>
+        <div class="field">
+          <label data-i18n="lMonthlyDeposit">每月存入定存</label>
+          <input type="number" id="monthlyDeposit" value="5000" min="0">
+        </div>
+
+        <div class="slabel" style="margin-top:6px;">
+          <span data-i18n="sPortfolio">投資組合（月投入金額）</span>
+          <button id="refresh-prices-btn" class="price-refresh-btn" onclick="fetchAllPrices()" title="重新整理股價">↻</button>
+        </div>
+        <div id="portfolio-list"></div>
+        <button class="push-btn add-btn" onclick="addHolding()" data-i18n="btnAdd">＋ 新增標的</button>
+        <div class="portfolio-total">
+          <span class="pt-label" data-i18n="portfolioTotalLabel">每月投入股市合計</span>
+          <span class="pt-val" id="portfolio-total-val">—</span>
+        </div>
+
+        <div class="slabel" style="margin-top:14px;" data-i18n="sAnnual">每年增加投入設定</div>
+        <div class="field">
+          <label data-i18n="lGrowCash">每年增加儲蓄比例</label>
+          <div class="range-val"><span id="contribGrowthCashVal">3.0</span>%</div>
+          <input type="range" id="contribGrowthCash" min="0" max="20" step="0.5" value="3" oninput="document.getElementById('contribGrowthCashVal').textContent=parseFloat(this.value).toFixed(1)">
+          <div class="range-row"><span>0%</span><span>20%</span></div>
+        </div>
+        <div class="field">
+          <label data-i18n="lGrowStock">每年增加投資股市比例</label>
+          <div class="range-val"><span id="contribGrowthStockVal">3.0</span>%</div>
+          <input type="range" id="contribGrowthStock" min="0" max="20" step="0.5" value="3" oninput="document.getElementById('contribGrowthStockVal').textContent=parseFloat(this.value).toFixed(1)">
+          <div class="range-row"><span>0%</span><span>20%</span></div>
+        </div>
+        <div class="field">
+          <label data-i18n="lContribCap">每月總投入上限（留空 = 無上限）</label>
+          <input type="number" id="contribCap" min="0" step="1000" data-i18n-ph="phCap" placeholder="例：50000">
+        </div>
+
+        <div class="slabel" style="margin-top:14px;" data-i18n="sWithdraw">退休提領參數</div>
+        <div class="field">
+          <label data-i18n="lInflation">通膨率</label>
+          <div class="range-val"><span id="inflationVal">2.5</span>%</div>
+          <input type="range" id="inflation" min="0" max="6" step="0.1" value="2.5" oninput="document.getElementById('inflationVal').textContent=parseFloat(this.value).toFixed(1)">
+          <div class="range-row"><span>0%</span><span>6%</span></div>
+        </div>
+        <div class="field">
+          <label data-i18n="lMonthlyWithdraw">退休後每月生活費（今日幣值）</label>
+          <input type="number" id="monthlyWithdraw" value="60000" min="0">
+        </div>
+        <div class="field">
+          <label data-i18n="lDividendRate">股息殖利率（年）</label>
+          <div class="range-val"><span id="dividendRateVal">2.5</span>%</div>
+          <input type="range" id="dividendRate" min="0" max="8" step="0.1" value="2.5" oninput="document.getElementById('dividendRateVal').textContent=parseFloat(this.value).toFixed(1)">
+          <div class="range-row"><span>0%</span><span>8%</span></div>
+        </div>
+        <div class="field">
+          <label data-i18n="lSWR">年提領率 SWR</label>
+          <div class="range-val"><span id="swrVal">4.0</span>%</div>
+          <input type="range" id="swr" min="2" max="6" step="0.1" value="4" oninput="document.getElementById('swrVal').textContent=parseFloat(this.value).toFixed(1)">
+          <div class="range-row"><span>2%</span><span>6%</span></div>
+          <div class="hint" data-i18n="hSWR">保守 3%、傳統 4%、積極 5%</div>
+        </div>
+      </fieldset>
+    </div>
+
+    <!-- 底部社會保險、額外與進階 -->
+    <div class="social-grid" id="social-grid">
+
+      <fieldset class="retro-group">
+        <legend class="retro-legend" data-i18n="badgeTW">▌ 台灣退休金</legend>
+        <div class="slabel" data-i18n="sLaborIns">勞保 / 勞退</div>
+
+        <div class="field">
+          <label data-i18n="lSalary">月薪 / 投保薪資</label>
+          <input type="number" id="salary" value="50000" min="0" oninput="updateLaborPreview()">
+          <div class="hint" data-i18n="hSalary">勞保與勞退共用此薪資估算</div>
+        </div>
+        <div class="field">
+          <label data-i18n="lServiceYears">預計工作年資（退休時）</label>
+          <input type="number" id="serviceYears" value="28" min="0" max="50" oninput="updateLaborPreview()">
+          <div class="hint" data-i18n="hServiceYears">至退休當下總工作年數</div>
+        </div>
+
+        <div class="toggle-row" style="margin-top:14px;">
+          <span class="toggle-label" data-i18n="tLaborIns">有加入勞保</span>
+          <label class="toggle">
+            <input type="checkbox" id="hasLaborIns" checked onchange="toggleLaborIns()">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+
+        <div class="social-section visible" id="labor-ins-section">
+          <div class="field">
+            <label data-i18n="lLaborStart">勞保起領年齡</label>
+            <div class="range-val"><span id="laborStartVal">65</span> <span data-i18n="unitAge">歲</span></div>
+            <input type="range" id="laborStart" min="60" max="70" step="1" value="65" oninput="document.getElementById('laborStartVal').textContent=this.value;updateLaborPreview()">
+            <div class="range-row"><span>60</span><span>70</span></div>
+          </div>
+          <div class="calc-preview" id="labor-pension-preview-box">
+            <div class="cp-label" data-i18n="previewLaborLabel">預估勞保年金（今日幣值）</div>
+            <div class="cp-val" id="labor-pension-preview">—</div>
+          </div>
+        </div>
+
+        <div class="toggle-row" style="margin-top:14px;">
+          <span class="toggle-label" data-i18n="tLaborRetire">有加入勞退</span>
+          <label class="toggle">
+            <input type="checkbox" id="hasLaborRetire" checked onchange="toggleLaborRetire()">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+
+        <div class="social-section visible" id="labor-retire-section">
+          <div class="field">
+            <label data-i18n="lVoluntaryRate">勞退自提比例</label>
+            <div class="range-val"><span id="voluntaryRateVal">0</span>%</div>
+            <input type="range" id="voluntaryRate" min="0" max="6" step="1" value="0" oninput="document.getElementById('voluntaryRateVal').textContent=this.value;updateLaborPreview()">
+            <div class="range-row"><span>0%</span><span>6%</span></div>
+            <div class="hint" data-i18n="hVoluntaryRate">雇主固定提撥 6%，此為你的額外自提</div>
+          </div>
+          <div class="calc-preview" id="labor-retire-preview-box">
+            <div class="cp-label" data-i18n="previewRetireLabel">預估退休勞退累積（依薪資×年資估算）</div>
+            <div class="cp-val" id="labor-retire-preview">—</div>
+          </div>
+        </div>
+
+        <div class="toggle-row" style="margin-top:14px;">
+          <span class="toggle-label" data-i18n="tNationalPension">有加入國民年金</span>
+          <label class="toggle">
+            <input type="checkbox" id="hasNationalPension" onchange="toggleNationalPension()">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+
+        <div class="social-section" id="national-pension-section">
+          <div class="field">
+            <label data-i18n="lNationalPension">國民年金 / 月（今日幣值）</label>
+            <input type="number" id="nationalPension" value="4000" min="0">
+            <div class="hint" data-i18n="hNationalPension">未加入勞保者適用，約 65 歲起</div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="retro-group">
+        <legend class="retro-legend" data-i18n="badgeExtra">▌ 額外收入</legend>
+        <div class="slabel" data-i18n="sExtra">退休其他收入</div>
+        <div class="field">
+          <label data-i18n="lExtraIncome">其他退休收入 / 月（今日幣值）</label>
+          <input type="number" id="extraIncome" value="0" min="0">
+          <div class="hint" data-i18n="hExtraIncome">租金、兼職、版稅等</div>
+        </div>
+        <div class="field">
+          <label data-i18n="lPensionCorp">公司退休金 / 一次領</label>
+          <input type="number" id="pensionCorp" value="0" min="0">
+          <div class="hint" data-i18n="hPensionCorp">退休當下一次性加入總資產</div>
+        </div>
+      </fieldset>
+
+      <fieldset class="retro-group">
+        <legend class="retro-legend" data-i18n="badgeAdv">▌ 進階設定</legend>
+        <div class="slabel" data-i18n="sAdv">壽命 / 情境</div>
+        <div class="field">
+          <label data-i18n="lLifeExpect">預期壽命</label>
+          <div class="range-val"><span id="lifeExpectVal">85</span> <span data-i18n="unitAge">歲</span></div>
+          <input type="range" id="lifeExpect" min="70" max="100" step="1" value="85" oninput="document.getElementById('lifeExpectVal').textContent=this.value">
+          <div class="range-row"><span>70</span><span>100</span></div>
+        </div>
+        <div class="field">
+          <label data-i18n="lScenarioOffset">情境偏移 ±%（樂觀/悲觀）</label>
+          <div class="range-val">± <span id="scenarioOffsetVal">3.0</span>%</div>
+          <input type="range" id="scenarioOffset" min="1" max="6" step="0.5" value="3" oninput="document.getElementById('scenarioOffsetVal').textContent=parseFloat(this.value).toFixed(1)">
+          <div class="range-row"><span>±1%</span><span>±6%</span></div>
+        </div>
+      </fieldset>
+    </div>
+
+    <!-- 試算觸發按鈕 -->
+    <div id="calc-btn-wrap" style="margin-bottom: 12px;">
+      <button class="calc-btn" onclick="calculate()" data-i18n="calcBtn">▶ 開始試算 CALCULATE</button>
+    </div>
+
+    <div id="recalc-btn-wrap" style="display:none; margin-bottom: 12px;">
+      <button class="calc-btn" onclick="showSettings()" data-i18n="recalcBtn">↻ 重新試算 RECALCULATE</button>
+    </div>
+
+    <!-- 輸出結果區塊 -->
+    <div id="results">
+
+      <div class="result-grid">
+        <div class="result-card">
+          <div class="result-dot d-orange"></div>
+          <div class="result-label" data-i18n="rvLabelStock">退休股市資產</div>
+          <div class="result-value"><span class="result-sym" id="sym1">NT$</span><span id="rv-total">—</span></div>
+          <div class="result-sub" data-i18n="rvSubStock">名目 · 基準情境</div>
+        </div>
+        <div class="result-card">
+          <div class="result-dot d-teal"></div>
+          <div class="result-label" data-i18n="rvLabelCash">退休存款資產</div>
+          <div class="result-value"><span class="result-sym" id="sym2">NT$</span><span id="rv-cash">—</span></div>
+          <div class="result-sub" data-i18n="rvSubCash">活存 + 定存 + 勞退</div>
+        </div>
+        <div class="result-card">
+          <div class="result-dot d-gold"></div>
+          <div class="result-label" data-i18n="rvLabelMonthly">每月總收入</div>
+          <div class="result-value"><span class="result-sym" id="sym3">NT$</span><span id="rv-monthly">—</span></div>
+          <div class="result-sub" data-i18n="rvSubMonthly">投資 + 勞保 + 其他</div>
+        </div>
+        <div class="result-card">
+          <div class="result-dot d-purple"></div>
+          <div class="result-label" data-i18n="rvLabelYears">距退休</div>
+          <div class="result-value"><span id="rv-years">—</span></div>
+          <div class="result-sub" data-i18n="rvSubYears">年</div>
+        </div>
       </div>
-      <div class="lang-wrap">
-        <button class="lang-btn active" onclick="setLang('zh')" id="btn-zh">中文</button>
-        <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+
+      <div class="gap-banner" id="gap-banner">
+        <div>
+          <div class="gap-label" id="gap-label-text">每月收支缺口</div>
+          <div class="gap-sub" id="gap-sub-text"></div>
+        </div>
+        <div class="gap-amount" id="gap-value-text">—</div>
       </div>
-    </div>
-  </div>
-</div>
 
-<div class="container">
-
-<div class="mode-toggle" style="background-color: rgb(215, 215, 215)">
-  <button class="mode-btn active" id="mode-btn-contribution" onclick="setMode('contribution')" data-i18n="modeContrib">每月投入導向</button>
-  <button class="mode-btn" id="mode-btn-target" disabled title="即將推出" data-i18n="modeTarget">目標導向（開發中）</button>
-</div>
-
-<div class="layout" id="settings-layout">
-
-  <div class="card">
-    <div class="slabel" data-i18n="sPersonal">個人設定</div>
-
-    <div class="field"><label data-i18n="lAge">現在年齡</label><input type="number" id="currentAge" value="29" min="18" max="70"></div>
-    <div class="field"><label data-i18n="lRetireAge">目標退休年齡</label><input type="number" id="retireAge" value="50" min="30" max="80" oninput="updateLaborPreview()"></div>
-
-    <div class="sdiv" data-i18n="dStock">股票資產</div>
-    <div class="field">
-      <label data-i18n="lCurrentAssets">股票起始資產</label>
-      <input type="number" id="currentAssets" value="0" min="0">
-      <div class="hint" data-i18n="hCurrentAssets">目前持有的股票市值合計</div>
-    </div>
-
-    <div class="sdiv" data-i18n="dSavings">活存資產</div>
-    <div class="field">
-      <label data-i18n="lSavingsAssets">活存金額</label>
-      <input type="number" id="savingsAssets" value="200000" min="0">
-      <div class="hint" data-i18n="hSavingsAssets">隨時可動用，低利率成長</div>
-    </div>
-    <div class="field">
-      <label data-i18n="lSavingsRate">活存年利率</label>
-      <div class="range-val"><span id="savingsRateVal">0.8</span>%</div>
-      <input type="range" id="savingsRate" min="0" max="3" step="0.1" value="0.8" oninput="document.getElementById('savingsRateVal').textContent=parseFloat(this.value).toFixed(1)">
-      <div class="range-row"><span>0%</span><span>3%</span></div>
-    </div>
-
-    <div class="sdiv" data-i18n="dDeposit">定存資產</div>
-    <div class="field">
-      <label data-i18n="lDepositAssets">定存金額</label>
-      <input type="number" id="depositAssets" value="500000" min="0">
-      <div class="hint" data-i18n="hDepositAssets">鎖定期限，較高利率</div>
-    </div>
-    <div class="field">
-      <label data-i18n="lDepositRate">定存年利率</label>
-      <div class="range-val"><span id="depositRateVal">2.0</span>%</div>
-      <input type="range" id="depositRate" min="0" max="5" step="0.1" value="2.0" oninput="document.getElementById('depositRateVal').textContent=parseFloat(this.value).toFixed(1)">
-      <div class="range-row"><span>0%</span><span>5%</span></div>
-    </div>
-
-    <div class="sdiv" data-i18n="dCalc">計算設定</div>
-    <div class="field">
-      <label data-i18n="lCurrency">計算幣別</label>
-      <select id="currency" onchange="updatePortfolioTotal()">
-        <option value="TWD">TWD 新台幣</option>
-        <option value="USD">USD 美元</option>
-      </select>
-    </div>
-    <div class="field">
-      <label data-i18n="lExchangeRate">美元匯率 (USD/TWD)</label>
-      <input type="number" id="exchangeRate" value="32" min="1" oninput="updatePortfolioTotal()">
-      <div class="hint" data-i18n="hExchangeRate">用於換算美股投入金額</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="slabel" data-i18n="sMonthly">每月投入設定</div>
-
-    <div class="field">
-      <label data-i18n="lMonthlySavings">每月存入活存</label>
-      <input type="number" id="monthlySavings" value="5000" min="0">
-    </div>
-    <div class="field">
-      <label data-i18n="lMonthlyDeposit">每月存入定存</label>
-      <input type="number" id="monthlyDeposit" value="5000" min="0">
-    </div>
-
-    <div class="slabel" style="margin-top:6px;"><span data-i18n="sPortfolio">投資組合（月投入金額）</span><button id="refresh-prices-btn" class="price-refresh-btn" onclick="fetchAllPrices()" title="重新整理股價">↻</button></div>
-    <div id="portfolio-list"></div>
-    <button class="add-btn" onclick="addHolding()" data-i18n="btnAdd">＋ 新增標的</button>
-    <div class="portfolio-total">
-      <span class="pt-label" data-i18n="portfolioTotalLabel">每月投入股市合計</span>
-      <span class="pt-val" id="portfolio-total-val">—</span>
-    </div>
-
-    <div class="slabel" style="margin-top:14px;" data-i18n="sAnnual">每年增加投入設定</div>
-    <div class="field">
-      <label data-i18n="lGrowCash">每年增加儲蓄比例</label>
-      <div class="range-val"><span id="contribGrowthCashVal">3.0</span>%</div>
-      <input type="range" id="contribGrowthCash" min="0" max="20" step="0.5" value="3" oninput="document.getElementById('contribGrowthCashVal').textContent=parseFloat(this.value).toFixed(1)">
-      <div class="range-row"><span>0%</span><span>20%</span></div>
-    </div>
-    <div class="field">
-      <label data-i18n="lGrowStock">每年增加投資股市比例</label>
-      <div class="range-val"><span id="contribGrowthStockVal">3.0</span>%</div>
-      <input type="range" id="contribGrowthStock" min="0" max="20" step="0.5" value="3" oninput="document.getElementById('contribGrowthStockVal').textContent=parseFloat(this.value).toFixed(1)">
-      <div class="range-row"><span>0%</span><span>20%</span></div>
-    </div>
-    <div class="field">
-      <label data-i18n="lContribCap">每月總投入上限（留空 = 無上限）</label>
-      <input type="number" id="contribCap" min="0" step="1000" data-i18n-ph="phCap" placeholder="例：50000">
-    </div>
-
-    <div class="slabel" style="margin-top:14px;" data-i18n="sWithdraw">退休提領參數</div>
-    <div class="field">
-      <label data-i18n="lInflation">通膨率</label>
-      <div class="range-val"><span id="inflationVal">2.5</span>%</div>
-      <input type="range" id="inflation" min="0" max="6" step="0.1" value="2.5" oninput="document.getElementById('inflationVal').textContent=parseFloat(this.value).toFixed(1)">
-      <div class="range-row"><span>0%</span><span>6%</span></div>
-    </div>
-    <div class="field">
-      <label data-i18n="lMonthlyWithdraw">退休後每月生活費（今日幣值）</label>
-      <input type="number" id="monthlyWithdraw" value="60000" min="0">
-    </div>
-    <div class="field">
-      <label data-i18n="lDividendRate">股息殖利率（年）</label>
-      <div class="range-val"><span id="dividendRateVal" style="font-family: Inter">2.5</span>%</div>
-      <input type="range" id="dividendRate" min="0" max="8" step="0.1" value="2.5" oninput="document.getElementById('dividendRateVal').textContent=parseFloat(this.value).toFixed(1)">
-      <div class="range-row"><span>0%</span><span>8%</span></div>
-    </div>
-    <div class="field">
-      <label data-i18n="lSWR">年提領率 SWR</label>
-      <div class="range-val"><span id="swrVal">4.0</span>%</div>
-      <input type="range" id="swr" min="2" max="6" step="0.1" value="4" oninput="document.getElementById('swrVal').textContent=parseFloat(this.value).toFixed(1)">
-      <div class="range-row"><span>2%</span><span>6%</span></div>
-      <div class="hint" data-i18n="hSWR">保守 3%、傳統 4%、積極 5%</div>
-    </div>
-  </div>
-</div>
-
-<div class="social-grid" id="social-grid">
-
-  <div class="card">
-    <div class="social-badge" data-i18n="badgeTW">台灣退休金</div>
-    <div class="slabel" data-i18n="sLaborIns">勞保 / 勞退</div>
-
-    <div class="field">
-      <label data-i18n="lSalary">月薪 / 投保薪資</label>
-      <input type="number" id="salary" value="50000" min="0" oninput="updateLaborPreview()">
-      <div class="hint" data-i18n="hSalary">勞保與勞退共用此薪資估算</div>
-    </div>
-    <div class="field">
-      <label data-i18n="lServiceYears">預計工作年資（退休時）</label>
-      <input type="number" id="serviceYears" value="28" min="0" max="50" oninput="updateLaborPreview()">
-      <div class="hint" data-i18n="hServiceYears">至退休當下總工作年數</div>
-    </div>
-
-    <div class="toggle-row" style="margin-top:14px;">
-      <span class="toggle-label" data-i18n="tLaborIns">有加入勞保</span>
-      <label class="toggle">
-        <input type="checkbox" id="hasLaborIns" checked onchange="toggleLaborIns()">
-        <span class="toggle-track"></span>
-      </label>
-    </div>
-
-    <div class="social-section visible" id="labor-ins-section">
-      <div class="field">
-        <label data-i18n="lLaborStart">勞保起領年齡</label>
-        <div class="range-val"><span id="laborStartVal">65</span> <span data-i18n="unitAge">歲</span></div>
-        <input type="range" id="laborStart" min="60" max="70" step="1" value="65" oninput="document.getElementById('laborStartVal').textContent=this.value;updateLaborPreview()">
-        <div class="range-row"><span>60</span><span>70</span></div>
+      <div class="income-bar-panel">
+        <div class="slabel" data-i18n="ibTitle">每月退休收入來源分析</div>
+        <div id="income-bars"></div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--win-dark);display:flex;justify-content:space-between;font-size:12px;">
+          <span style="font-weight:bold;" data-i18n="ibNeedLabel">每月總需求（生活費）</span>
+          <span id="ib-need-val" style="color:var(--accent-amber);font-weight:bold;">—</span>
+        </div>
       </div>
-      <div class="calc-preview" id="labor-pension-preview-box" style="background-color: rgba(208, 92, 40, 0.1); opacity: 1">
-        <div class="cp-label" data-i18n="previewLaborLabel">預估勞保年金（今日幣值）</div>
-        <div class="cp-val" id="labor-pension-preview">—</div>
+
+      <div class="timeline">
+        <div class="slabel" data-i18n="tlTitle">時間進度</div>
+        <div class="tl-track">
+          <div class="tl-fill" id="timeline-fill" style="width:0%"></div>
+          <div class="tl-marker" id="timeline-marker" style="left:0%"></div>
+        </div>
+        <div class="tl-labels"><span data-i18n="tlNow">現在</span><span data-i18n="tlGoal">退休目標</span></div>
+        <div class="tl-note" id="tl-note"></div>
       </div>
-    </div>
 
-    <div class="toggle-row" style="margin-top:14px;">
-      <span class="toggle-label" data-i18n="tLaborRetire">有加入勞退</span>
-      <label class="toggle">
-        <input type="checkbox" id="hasLaborRetire" checked onchange="toggleLaborRetire()">
-        <span class="toggle-track"></span>
-      </label>
-    </div>
-
-    <div class="social-section visible" id="labor-retire-section">
-      <div class="field">
-        <label data-i18n="lVoluntaryRate">勞退自提比例</label>
-        <div class="range-val"><span id="voluntaryRateVal">0</span>%</div>
-        <input type="range" id="voluntaryRate" min="0" max="6" step="1" value="0" oninput="document.getElementById('voluntaryRateVal').textContent=this.value;updateLaborPreview()">
-        <div class="range-row"><span>0%</span><span>6%</span></div>
-        <div class="hint" data-i18n="hVoluntaryRate">雇主固定提撥 6%，此為你的額外自提</div>
+      <div class="chart-card">
+        <div class="slabel" data-i18n="chartGrowthTitle">資產成長曲線</div>
+        <div class="sc-tabs">
+          <button class="sc-tab" id="tab-opt" onclick="highlightScenario('opt')">樂觀 +3%</button>
+          <button class="sc-tab" id="tab-base" onclick="highlightScenario('base')" data-i18n="tabBase">基準</button>
+          <button class="sc-tab" id="tab-pes" onclick="highlightScenario('pes')">悲觀 −3%</button>
+        </div>
+        <canvas id="growthChart" height="260"></canvas>
+        <div style="font-size:11px;color:#333;margin-top:10px;" id="scenario-note"></div>
       </div>
-      <div class="calc-preview" id="labor-retire-preview-box" style="background-color: rgba(208, 92, 40, 0.1)">
-        <div class="cp-label" data-i18n="previewRetireLabel">預估退休勞退累積（依薪資×年資估算）</div>
-        <div class="cp-val" id="labor-retire-preview">—</div>
+
+      <div class="breakdown-grid">
+        <div class="bd-card">
+          <div class="bd-title" data-i18n="bdTitle1">每月收支拆解</div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdDividend">股息收入 / 月</span><span class="bd-val v-orange" id="bd-dividend">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdSellstock">賣股提領 / 月</span><span class="bd-val v-teal" id="bd-sellstock">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdCashwithdraw">存款提領 / 月</span><span class="bd-val v-gold" id="bd-cashwithdraw">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdLaborpension">勞保年金 / 月</span><span class="bd-val v-teal" id="bd-laborpension">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdExtra">其他收入 / 月</span><span class="bd-val v-purple" id="bd-extra">—</span></div>
+          <div class="bd-row" style="margin-top:4px;border-top:1px solid #999;padding-top:6px;"><span class="bd-lbl" data-i18n="bdTotal">合計月收入</span><span class="bd-val" id="bd-total">—</span></div>
+          <div class="bd-row" style="margin-top:4px;border-top:1px solid #999;padding-top:6px;"><span class="bd-lbl" data-i18n="bdLiving">每月生活費</span><span class="bd-val v-danger" id="bd-living">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdGapLabel">淨結餘 / 月</span><span class="bd-val" id="bd-gap">—</span></div>
+        </div>
+
+        <div class="bd-card">
+          <div class="bd-title" data-i18n="bdTitle2">股市資產詳情</div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdOptLabel">樂觀情境</span><span class="bd-val v-gold" id="bd-opt">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdBaseLabel">基準情境</span><span class="bd-val v-teal" id="bd-base-val">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdPesLabel">悲觀情境</span><span class="bd-val v-danger" id="bd-pes">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdRealLabel">實質資產（今日幣值）</span><span class="bd-val" id="bd-real">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdContribLabel">累計總投入</span><span class="bd-val v-muted" id="bd-contrib">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdLaborRetireLabel">勞退帳戶到退休</span><span class="bd-val v-teal" id="bd-labor-retire-final">—</span></div>
+        </div>
+
+        <div class="bd-card">
+          <div class="bd-title" data-i18n="bdTitle3">存款資產詳情</div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdSavingsLabel">活存到退休</span><span class="bd-val" id="bd-savings-final">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdDepositLabel">定存到退休</span><span class="bd-val v-gold" id="bd-deposit-final">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdCashmoLabel">存款每月可提</span><span class="bd-val v-gold" id="bd-cashmo">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdStockContribLabel">每月投入股市</span><span class="bd-val v-orange" id="bd-stock-monthly-contrib">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdLifeLabel">退休年數（預期）</span><span class="bd-val" id="bd-life">—</span></div>
+          <div class="bd-row"><span class="bd-lbl" data-i18n="bdPensionCorpLabel">公司退休金</span><span class="bd-val v-purple" id="bd-pension-corp">—</span></div>
+        </div>
       </div>
-    </div>
 
-    <div class="toggle-row" style="margin-top:14px;">
-      <span class="toggle-label" data-i18n="tNationalPension">有加入國民年金</span>
-      <label class="toggle">
-        <input type="checkbox" id="hasNationalPension" onchange="toggleNationalPension()">
-        <span class="toggle-track"></span>
-      </label>
-    </div>
-
-    <div class="social-section" id="national-pension-section">
-      <div class="field">
-        <label data-i18n="lNationalPension">國民年金 / 月（今日幣值）</label>
-        <input type="number" id="nationalPension" value="4000" min="0">
-        <div class="hint" data-i18n="hNationalPension">未加入勞保者適用，約 65 歲起</div>
+      <div class="chart-card">
+        <div class="slabel" data-i18n="chartSustainTitle">退休後資產持續性</div>
+        <canvas id="sustainChart" height="200"></canvas>
+        <div style="font-size:12px;margin-top:10px;font-weight:bold;" id="sustain-note"></div>
       </div>
+
+      <div class="note" id="note-text">※ 股市資產採複利計算，包含起始股票資產與每月投入。活存/定存分別以各自利率成長。勞保年金採簡化公式：MAX(月薪×年資×0.775%+3000, 月薪×年資×1.55%)。勞退帳戶以薪資×（6%＋自提比例）為月提撥，年資為提撥年數，2% 保守利率複利。國民年金需開啟開關並達 65 歲起領。退休後存款先行提領（以加權保守利率成長），不足部份由股市資產補上；國民年金需開啟並達 65 歲方計入收入。僅供參考，非投資建議。</div>
     </div>
+
   </div>
 
-  <div class="card">
-    <div class="social-badge" data-i18n="badgeExtra">額外收入</div>
-    <div class="slabel" data-i18n="sExtra">退休其他收入</div>
-    <div class="field">
-      <label data-i18n="lExtraIncome">其他退休收入 / 月（今日幣值）</label>
-      <input type="number" id="extraIncome" value="0" min="0">
-      <div class="hint" data-i18n="hExtraIncome">租金、兼職、版稅等</div>
-    </div>
-    <div class="field">
-      <label data-i18n="lPensionCorp">公司退休金 / 一次領</label>
-      <input type="number" id="pensionCorp" value="0" min="0">
-      <div class="hint" data-i18n="hPensionCorp">退休當下一次性加入總資產</div>
-    </div>
+  <!-- 系統狀態列 -->
+  <div class="win-statusbar">
+    <div class="win-status-cell">SYSTEM READY</div>
+    <div class="win-status-cell" id="sb-status">TWSE/YF: READY</div>
+    <div class="win-status-cell" style="margin-left:auto;">MEM: 640K OK</div>
   </div>
-
-  <div class="card">
-    <div class="social-badge" data-i18n="badgeAdv">進階設定</div>
-    <div class="slabel" data-i18n="sAdv">壽命 / 情境</div>
-    <div class="field">
-      <label data-i18n="lLifeExpect">預期壽命</label>
-      <div class="range-val"><span id="lifeExpectVal">85</span> <span data-i18n="unitAge">歲</span></div>
-      <input type="range" id="lifeExpect" min="70" max="100" step="1" value="85" oninput="document.getElementById('lifeExpectVal').textContent=this.value">
-      <div class="range-row"><span>70</span><span>100</span></div>
-    </div>
-    <div class="field">
-      <label data-i18n="lScenarioOffset">情境偏移 ±%（樂觀/悲觀）</label>
-      <div class="range-val">± <span id="scenarioOffsetVal" style="font-family: Inter">3.0</span>%</div>
-      <input type="range" id="scenarioOffset" min="1" max="6" step="0.5" value="3" oninput="document.getElementById('scenarioOffsetVal').textContent=parseFloat(this.value).toFixed(1)">
-      <div class="range-row"><span>±1%</span><span>±6%</span></div>
-    </div>
-  </div>
-</div>
-
-<div class="card-full" id="calc-btn-wrap">
-  <button class="calc-btn" onclick="calculate()" data-i18n="calcBtn">▶ 開始試算 CALCULATE</button>
-</div>
-
-<div class="card-full" id="recalc-btn-wrap" style="display:none">
-  <button class="calc-btn" onclick="showSettings()" data-i18n="recalcBtn">↻ 重新試算 RECALCULATE</button>
-</div>
-
-<div id="results">
-
-  <div class="result-grid fade-in">
-    <div class="result-card"><div class="result-dot d-orange"></div><div class="result-label" data-i18n="rvLabelStock">退休股市資產</div><div class="result-value"><span class="result-sym" id="sym1" style="margin: 0px 10px 0px 0px">NT$</span><span id="rv-total">—</span></div><div class="result-sub" data-i18n="rvSubStock">名目 · 基準情境</div></div>
-    <div class="result-card"><div class="result-dot d-teal" style="background-color: rgb(157, 185, 195)"></div><div class="result-label" data-i18n="rvLabelCash">退休存款資產</div><div class="result-value"><span class="result-sym" id="sym2" style="margin: 0px 10px 0px 0px">NT$</span><span id="rv-cash">—</span></div><div class="result-sub" data-i18n="rvSubCash">活存 + 定存 + 勞退</div></div>
-    <div class="result-card"><div class="result-dot d-gold" style="background-color: rgb(222, 161, 117)"></div><div class="result-label" data-i18n="rvLabelMonthly">每月總收入</div><div class="result-value"><span class="result-sym" id="sym3" style="margin: 0px 8px 0px 0px">NT$</span><span id="rv-monthly">—</span></div><div class="result-sub" data-i18n="rvSubMonthly">投資 + 勞保 + 其他</div></div>
-    <div class="result-card"><div class="result-dot d-purple" style="background-color: rgb(106, 69, 158)"></div><div class="result-label" data-i18n="rvLabelYears">距退休</div><div class="result-value"><span id="rv-years">—</span></div><div class="result-sub" data-i18n="rvSubYears">年</div></div>
-  </div>
-
-  <div class="gap-banner fade-in" id="gap-banner">
-    <div><div class="gap-label" id="gap-label-text">每月收支缺口</div><div class="gap-sub" id="gap-sub-text"></div></div>
-    <div class="gap-amount" id="gap-value-text">—</div>
-  </div>
-
-  <div class="income-bar-panel fade-in">
-    <div class="slabel" data-i18n="ibTitle">每月退休收入來源分析</div>
-    <div id="income-bars"></div>
-    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;">
-      <span style="color:var(--muted)" data-i18n="ibNeedLabel">每月總需求（生活費）</span>
-      <span id="ib-need-val" style="color:var(--gold);font-weight:500;">—</span>
-    </div>
-  </div>
-
-  <div class="timeline fade-in">
-    <div class="slabel" data-i18n="tlTitle">時間進度</div>
-    <div class="tl-track"><div class="tl-fill" id="timeline-fill" style="width:0%"></div><div class="tl-marker" id="timeline-marker" style="left:0%"></div></div>
-    <div class="tl-labels"><span data-i18n="tlNow">現在</span><span data-i18n="tlGoal">退休目標</span></div>
-    <div class="tl-note" id="tl-note"></div>
-  </div>
-
-  <div class="chart-card fade-in">
-    <div class="slabel" data-i18n="chartGrowthTitle">資產成長曲線</div>
-    <div class="sc-tabs">
-      <button class="sc-tab" id="tab-opt" onclick="highlightScenario('opt')">樂觀 +3%</button>
-      <button class="sc-tab" id="tab-base" onclick="highlightScenario('base')" data-i18n="tabBase">基準</button>
-      <button class="sc-tab" id="tab-pes" onclick="highlightScenario('pes')">悲觀 −3%</button>
-    </div>
-    <canvas id="growthChart" height="260"></canvas>
-    <div style="font-size:11px;color:var(--muted);margin-top:10px;" id="scenario-note"></div>
-  </div>
-
-  <div class="breakdown-grid fade-in">
-    <div class="bd-card">
-      <div class="bd-title" data-i18n="bdTitle1">每月收支拆解</div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdDividend">股息收入 / 月</span><span class="bd-val v-orange" id="bd-dividend">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdSellstock">賣股提領 / 月</span><span class="bd-val v-teal" id="bd-sellstock">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdCashwithdraw">存款提領 / 月</span><span class="bd-val v-gold" id="bd-cashwithdraw">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdLaborpension">勞保年金 / 月</span><span class="bd-val v-teal" id="bd-laborpension">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdExtra">其他收入 / 月</span><span class="bd-val v-purple" id="bd-extra">—</span></div>
-      <div class="bd-row" style="margin-top:4px;border-top:1px solid var(--border);padding-top:8px;"><span class="bd-lbl" data-i18n="bdTotal">合計月收入</span><span class="bd-val" id="bd-total">—</span></div>
-      <div class="bd-row" style="margin-top:4px;border-top:1px solid var(--border);padding-top:8px;"><span class="bd-lbl" data-i18n="bdLiving">每月生活費</span><span class="bd-val v-danger" id="bd-living">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdGapLabel">淨結餘 / 月</span><span class="bd-val" id="bd-gap">—</span></div>
-    </div>
-    <div class="bd-card">
-      <div class="bd-title" data-i18n="bdTitle2">股市資產詳情</div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdOptLabel">樂觀情境</span><span class="bd-val v-gold" id="bd-opt">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdBaseLabel">基準情境</span><span class="bd-val v-teal" id="bd-base-val">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdPesLabel">悲觀情境</span><span class="bd-val v-danger" id="bd-pes">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdRealLabel">實質資產（今日幣值）</span><span class="bd-val" id="bd-real">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdContribLabel">累計總投入</span><span class="bd-val v-muted" id="bd-contrib">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdLaborRetireLabel">勞退帳戶到退休</span><span class="bd-val v-teal" id="bd-labor-retire-final">—</span></div>
-    </div>
-    <div class="bd-card">
-      <div class="bd-title" data-i18n="bdTitle3">存款資產詳情</div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdSavingsLabel">活存到退休</span><span class="bd-val" id="bd-savings-final">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdDepositLabel">定存到退休</span><span class="bd-val v-gold" id="bd-deposit-final">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdCashmoLabel">存款每月可提</span><span class="bd-val v-gold" id="bd-cashmo">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdStockContribLabel">每月投入股市</span><span class="bd-val v-orange" id="bd-stock-monthly-contrib">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdLifeLabel">退休年數（預期）</span><span class="bd-val" id="bd-life">—</span></div>
-      <div class="bd-row"><span class="bd-lbl" data-i18n="bdPensionCorpLabel">公司退休金</span><span class="bd-val v-purple" id="bd-pension-corp">—</span></div>
-    </div>
-  </div>
-
-  <div class="chart-card fade-in">
-    <div class="slabel" data-i18n="chartSustainTitle">退休後資產持續性</div>
-    <canvas id="sustainChart" height="200"></canvas>
-    <div style="font-size:12px;margin-top:10px;" id="sustain-note"></div>
-  </div>
-
-  <div class="note" id="note-text">※ 股市資產採複利計算，包含起始股票資產與每月投入。活存/定存分別以各自利率成長。勞保年金採簡化公式：MAX(月薪×年資×0.775%+3000, 月薪×年資×1.55%)。勞退帳戶以薪資×（6%＋自提比例）為月提撥，年資為提撥年數，2% 保守利率複利。國民年金需開啟開關並達 65 歲起領。退休後存款先行提領（以加權保守利率成長），不足部份由股市資產補上；國民年金需開啟並達 65 歲方計入收入。僅供參考，非投資建議。</div>
-</div>
-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -528,21 +981,21 @@ let lang = 'zh';
 
 const T = {
   zh: {
-    modeContrib:'每月投入導向', modeTarget:'目標導向（開發中）',
-    sPersonal:'個人設定', lAge:'現在年齡', lRetireAge:'目標退休年齡',
-    dStock:'股票資產', lCurrentAssets:'股票起始資產', hCurrentAssets:'目前持有的股票市值合計',
-    dSavings:'活存資產', lSavingsAssets:'活存金額', hSavingsAssets:'隨時可動用，低利率成長',
+    modeContrib:'[●] 每月投入導向', modeTarget:'[ ] 目標導向（開發中）',
+    sPersonal:'▌ 個人設定', lAge:'現在年齡', lRetireAge:'目標退休年齡',
+    dStock:'> 股票資產', lCurrentAssets:'股票起始資產', hCurrentAssets:'目前持有的股票市值合計',
+    dSavings:'> 活存資產', lSavingsAssets:'活存金額', hSavingsAssets:'隨時可動用，低利率成長',
     lSavingsRate:'活存年利率',
-    dDeposit:'定存資產', lDepositAssets:'定存金額', hDepositAssets:'鎖定期限，較高利率',
+    dDeposit:'> 定存資產', lDepositAssets:'定存金額', hDepositAssets:'鎖定期限，較高利率',
     lDepositRate:'定存年利率',
-    dCalc:'計算設定', lCurrency:'計算幣別', lExchangeRate:'美元匯率 (USD/TWD)', hExchangeRate:'用於換算美股投入金額',
-    sMonthly:'每月投入設定', lMonthlySavings:'每月存入活存', lMonthlyDeposit:'每月存入定存',
-    sPortfolio:'投資組合（月投入金額）', btnAdd:'＋ 新增標的', portfolioTotalLabel:'每月投入股市合計',
-    sAnnual:'每年增加投入設定', lGrowCash:'每年增加儲蓄比例', lGrowStock:'每年增加投資股市比例',
+    dCalc:'> 計算設定', lCurrency:'計算幣別', lExchangeRate:'美元匯率 (USD/TWD)', hExchangeRate:'用於換算美股投入金額',
+    sMonthly:'▌ 每月投入設定', lMonthlySavings:'每月存入活存', lMonthlyDeposit:'每月存入定存',
+    sPortfolio:'> 投資組合（月投入金額）', btnAdd:'＋ 新增標的', portfolioTotalLabel:'每月投入股市合計',
+    sAnnual:'> 每年增加投入設定', lGrowCash:'每年增加儲蓄比例', lGrowStock:'每年增加投資股市比例',
     lContribCap:'每月總投入上限（留空 = 無上限）', phCap:'例：50000',
-    sWithdraw:'退休提領參數', lInflation:'通膨率', lMonthlyWithdraw:'退休後每月生活費（今日幣值）',
+    sWithdraw:'> 退休提領參數', lInflation:'通膨率', lMonthlyWithdraw:'退休後每月生活費（今日幣值）',
     lDividendRate:'股息殖利率（年）', lSWR:'年提領率 SWR', hSWR:'保守 3%、傳統 4%、積極 5%',
-    badgeTW:'台灣退休金', sLaborIns:'勞保 / 勞退',
+    badgeTW:'▌ 台灣退休金', sLaborIns:'勞保 / 勞退',
     lSalary:'月薪 / 投保薪資', hSalary:'勞保與勞退共用此薪資估算',
     lServiceYears:'預計工作年資（退休時）', hServiceYears:'至退休當下總工作年數',
     tLaborIns:'有加入勞保', lLaborStart:'勞保起領年齡',
@@ -552,10 +1005,10 @@ const T = {
     previewRetireLabel:'預估退休勞退累積（依薪資×年資估算）',
     tNationalPension:'有加入國民年金', lNationalPension:'國民年金 / 月（今日幣值）',
     hNationalPension:'未加入勞保者適用，約 65 歲起',
-    badgeExtra:'額外收入', sExtra:'退休其他收入',
+    badgeExtra:'▌ 額外收入', sExtra:'退休其他收入',
     lExtraIncome:'其他退休收入 / 月（今日幣值）', hExtraIncome:'租金、兼職、版稅等',
     lPensionCorp:'公司退休金 / 一次領', hPensionCorp:'退休當下一次性加入總資產',
-    badgeAdv:'進階設定', sAdv:'壽命 / 情境',
+    badgeAdv:'▌ 進階設定', sAdv:'壽命 / 情境',
     lLifeExpect:'預期壽命', lScenarioOffset:'情境偏移 ±%（樂觀/悲觀）',
     calcBtn:'▶ 開始試算 CALCULATE', recalcBtn:'↻ 重新試算 RECALCULATE',
     rvLabelStock:'退休股市資產', rvSubStock:'名目 · 基準情境',
@@ -751,11 +1204,6 @@ const DEF_RETURNS = {
 };
 
 // ── Stock Price API ──
-// TW: TWSE OpenAPI (openapi.twse.com.tw) — 官方，原生CORS，一次取全部台股月均價
-//     → fallback: Yahoo Finance .TW via proxy
-// US: Yahoo Finance v8/chart via proxy cascade
-// allorigins使用/get模式(回傳{contents}wrapper)，避免gzip解析問題
-
 function isTWTicker(t) { return /^\d/.test(t); }
 
 async function tryFetch(url, ms = 8000) {
@@ -770,24 +1218,17 @@ async function tryFetch(url, ms = 8000) {
   } catch(e) { clearTimeout(timer); throw e; }
 }
 
-// 參考 money-god/src/stockApi.js 已驗證可用的策略：
-// 1) allorigins 加 cache-buster (_=Date.now()) 防止 proxy 端快取舊資料
-// 2) contents 是字串時才 JSON.parse；否則 fallback 到原始物件
 async function fetchWithProxies(targetUrl) {
-  // 1. allorigins /get — wraps body as {contents:"..."}（最穩定）
   try {
     const w = await tryFetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&_=${Date.now()}`);
     const finalData = typeof w?.contents === 'string' ? JSON.parse(w.contents) : (w?.contents || w);
     if (finalData) return finalData;
   } catch(e) {}
-  // 2. corsproxy.io — raw passthrough
   try { return await tryFetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`); } catch(e) {}
-  // 3. codetabs proxy
   try { return await tryFetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`); } catch(e) {}
   throw new Error('all proxies failed');
 }
 
-// USD→TWD 即時匯率（open.er-api.com 原生 CORS，不需 proxy）
 async function fetchUsdTwdRate() {
   try {
     const res = await fetch('https://open.er-api.com/v6/latest/USD');
@@ -796,24 +1237,18 @@ async function fetchUsdTwdRate() {
   } catch(e) { return null; }
 }
 
-// ── TWSE OpenAPI (台股官方，原生 CORS) ──
-// 一次拉全部上市股票的月均價，cache 在 session 中
-// 從 http:// 可直接連；從 file:// 需走 proxy
 let _twseCache = null;
 async function getTWSEPriceMap() {
   if (_twseCache) return _twseCache;
   const TWSE_URL = 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL';
   let data;
-  // 先嘗試直接連（HTTP server 時可行，因 TWSE OpenAPI 有 CORS header）
   try { data = await tryFetch(TWSE_URL, 9000); } catch(e) {}
-  // 直接連失敗（file:// 或被擋）→ 透過 allorigins proxy
   if (!Array.isArray(data)) {
     try {
       const w = await tryFetch(`https://api.allorigins.win/get?url=${encodeURIComponent(TWSE_URL)}`, 15000);
       if (w?.contents) data = JSON.parse(w.contents);
     } catch(e) {}
   }
-  // 再試 corsproxy
   if (!Array.isArray(data)) {
     try { data = await tryFetch(`https://corsproxy.io/?${encodeURIComponent(TWSE_URL)}`, 12000); } catch(e) {}
   }
@@ -828,7 +1263,6 @@ async function getTWSEPriceMap() {
   return map;
 }
 
-// ── Yahoo Finance v8/chart（比 v7/quote 限制少）──
 async function fetchYFChart(symbol) {
   const url  = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1mo&range=1y`;
   const data = await fetchWithProxies(url);
@@ -837,15 +1271,12 @@ async function fetchYFChart(symbol) {
   return { price: meta.regularMarketPrice, priceCur: meta.currency || 'USD' };
 }
 
-// ── 統一取價入口 ──
 async function fetchPriceSingle(ticker) {
   if (isTWTicker(ticker)) {
-    // Layer 1: TWSE OpenAPI（直接，不需 proxy）
     try {
       const map = await getTWSEPriceMap();
       if (map[ticker]) return { price: map[ticker], priceCur: 'TWD' };
     } catch(e) {}
-    // Layer 2: Yahoo Finance .TW via proxy
     try { return await fetchYFChart(ticker + '.TW'); } catch(e) {}
   } else {
     try { return await fetchYFChart(ticker); } catch(e) {}
@@ -884,7 +1315,6 @@ async function fetchAllPrices() {
   valid.forEach(({ i }) => { holdings[i].priceLoading = true; holdings[i].priceError = false; });
   renderPortfolio();
 
-  // 台股先預熱 TWSE cache（單一請求取全部，後面每個 ticker 直接查 map）
   if (valid.some(x => isTWTicker(x.ticker))) {
     try { await getTWSEPriceMap(); } catch(e) {}
   }
@@ -936,7 +1366,7 @@ function renderPortfolio() {
         <button class="curr-btn ${h.currency==='USD'?'active':''}"
           onclick="setHoldingCurrency(${i},'USD')">USD</button>
       </div>
-      <button class="remove-btn" onclick="removeHolding(${i})">×</button>`;
+      <button class="push-btn remove-btn" onclick="removeHolding(${i})">×</button>`;
     list.appendChild(row);
   });
   updatePortfolioTotal();
@@ -1026,7 +1456,6 @@ function simulateCash(startBal, monthlyContrib, growRate, annualRate, years, cap
   return bal;
 }
 
-// 勞退複利：依薪資×(6%+自提) 月提撥，年資為總提撥年數
 function calcLaborRetireByService(salary, voluntaryRate, serviceYears) {
   const monthly = salary * (0.06 + voluntaryRate);
   const r = 0.02 / 12;
@@ -1045,42 +1474,34 @@ function renderDynamicText() {
           stockMonthly, cashMonthly, laborRetireMo, laborPensionActive,
           nationalPensionActive, extraIncomeNominal, totalMonthly } = _cs;
 
-  // Gap banner
   const banner = document.getElementById('gap-banner');
   const gapVal = document.getElementById('gap-value-text');
   const gapLabelEl = document.getElementById('gap-label-text');
   const gapSubEl = document.getElementById('gap-sub-text');
   if (gap >= 0) {
     banner.className = 'gap-banner ok';
-    banner.style.backgroundColor = 'rgba(122,138,79,0.1)';
-    banner.style.borderColor = 'rgba(122,138,79,0.25)';
-    gapLabelEl.style.color = '#7a8a4f';
-    gapSubEl.style.color = '#7a8a4f';
+    gapLabelEl.style.color = '#008000';
+    gapSubEl.style.color = '#008000';
     gapLabelEl.textContent = t.gapSurplusLabel;
     gapSubEl.textContent   = t.gapSurplusSub(sym, fmt(gap, currency));
     gapVal.className = 'gap-amount ok';
-    gapVal.style.color = '#7a8a4f';
     gapVal.textContent = `+ ${sym}${fmt(gap, currency)}`;
   } else {
     banner.className = 'gap-banner warn';
-    banner.style.backgroundColor = 'rgba(138,38,34,0.08)';
-    banner.style.borderColor = 'rgba(138,38,34,0.2)';
-    gapLabelEl.style.color = '#8a2622';
-    gapSubEl.style.color = '#8a2622';
+    gapLabelEl.style.color = 'var(--accent-red)';
+    gapSubEl.style.color = 'var(--accent-red)';
     gapLabelEl.textContent = t.gapShortLabel;
     gapSubEl.textContent   = t.gapShortSub(sym, fmt(Math.abs(gap), currency));
     gapVal.className = 'gap-amount warn';
-    gapVal.style.color = '#8a2622';
     gapVal.textContent = `− ${sym}${fmt(Math.abs(gap), currency)}`;
   }
 
-  // Income bars
   const incomeItems = [
-    { key: 'ibStock',    val: stockMonthly,                  color: '#d05c28' },
-    { key: 'ibCash',     val: cashMonthly + laborRetireMo,   color: '#9db9c3' },
-    { key: 'ibLabor',    val: laborPensionActive,             color: '#dea377' },
-    { key: 'ibNational', val: nationalPensionActive,          color: '#b28fe7' },
-    { key: 'ibExtra',    val: extraIncomeNominal,             color: '#8a7060' },
+    { key: 'ibStock',    val: stockMonthly,                 color: '#e69138' },
+    { key: 'ibCash',     val: cashMonthly + laborRetireMo,   color: '#008080' },
+    { key: 'ibLabor',    val: laborPensionActive,             color: '#b06000' },
+    { key: 'ibNational', val: nationalPensionActive,          color: '#7a378b' },
+    { key: 'ibExtra',    val: extraIncomeNominal,             color: '#555555' },
   ].filter(x => x.val > 0);
   const maxBar = Math.max(totalMonthly, withdrawNominal, 1);
   const barsEl = document.getElementById('income-bars');
@@ -1094,28 +1515,24 @@ function renderDynamicText() {
     </div>`;
   });
 
-  // Timeline
   const progress = Math.min(100, Math.max(0, (currentAge / retireAge) * 100));
   document.getElementById('tl-note').textContent = t.tlNote(progress.toFixed(0), years);
 
-  // Chart tabs + scenario note
   const off = (scenarioOffset * 100).toFixed(1);
   document.getElementById('tab-opt').textContent    = t.tabOptFn(off);
   document.getElementById('tab-pes').textContent    = t.tabPesFn(off);
   document.getElementById('scenario-note').textContent = t.scenarioNote(annualReturn, scenarioOffset);
 
-  // Redraw charts with translated labels
   const ds = { opt: t.dsOpt, base: t.dsBase, pes: t.dsPes, real: t.dsReal, contrib: t.dsContrib };
   drawGrowthChart(_cs.ages, _cs.optD, _cs.baseD, _cs.pesD, _cs.realD, _cs.contribD, currency, sym, ds);
   drawSustainChart(_cs.sLabels, _cs.sOpt, _cs.sBase, _cs.sPes, currency, sym, ds);
 
-  // Sustain note
   const snEl = document.getElementById('sustain-note');
   if (depletedB === null) {
-    snEl.style.color = 'var(--success)';
+    snEl.style.color = '#008000';
     snEl.textContent = t.sustainOk(retireYears);
   } else {
-    snEl.style.color = 'var(--danger)';
+    snEl.style.color = 'var(--accent-red)';
     snEl.textContent = t.sustainWarn(depletedB);
   }
 }
@@ -1149,18 +1566,17 @@ function calculate(silent = false) {
   const currency        = document.getElementById('currency').value;
   const sym             = currency === 'TWD' ? 'NT$' : 'US$';
 
-  const hasLaborIns       = document.getElementById('hasLaborIns').checked;
-  const hasLaborRetire    = document.getElementById('hasLaborRetire').checked;
-  const hasNationalPension= document.getElementById('hasNationalPension').checked;
-  const salary            = +document.getElementById('salary').value || 0;
-  const serviceYears      = +document.getElementById('serviceYears').value || 0;
-  const laborStart        = +document.getElementById('laborStart').value;
-  const voluntaryRate     = +document.getElementById('voluntaryRate').value / 100;
-  const nationalPension   = hasNationalPension ? +document.getElementById('nationalPension').value : 0;
-  const extraIncome       = +document.getElementById('extraIncome').value;
-  const pensionCorp       = +document.getElementById('pensionCorp').value;
+  const hasLaborIns        = document.getElementById('hasLaborIns').checked;
+  const hasLaborRetire     = document.getElementById('hasLaborRetire').checked;
+  const hasNationalPension = document.getElementById('hasNationalPension').checked;
+  const salary             = +document.getElementById('salary').value || 0;
+  const serviceYears       = +document.getElementById('serviceYears').value || 0;
+  const laborStart         = +document.getElementById('laborStart').value;
+  const voluntaryRate      = +document.getElementById('voluntaryRate').value / 100;
+  const nationalPension    = hasNationalPension ? +document.getElementById('nationalPension').value : 0;
+  const extraIncome        = +document.getElementById('extraIncome').value;
+  const pensionCorp        = +document.getElementById('pensionCorp').value;
 
-  // 勞保年金（薪資×年資公式）
   const laborPensionToday = hasLaborIns && salary > 0 && serviceYears > 0
     ? Math.max(salary * serviceYears * 0.00775 + 3000, salary * serviceYears * 0.0155)
     : 0;
@@ -1168,14 +1584,12 @@ function calculate(silent = false) {
   const nationalPensionNominal = nationalPension   * Math.pow(1 + inflation, years);
   const extraIncomeNominal     = extraIncome       * Math.pow(1 + inflation, years);
 
-  // 勞退（薪資×年資估算總額）
   const laborRetireMonthly  = hasLaborRetire && salary > 0 ? salary * (0.06 + voluntaryRate) : 0;
   const laborRetireAtRetire = hasLaborRetire && salary > 0 && serviceYears > 0
     ? calcLaborRetireByService(salary, voluntaryRate, serviceYears)
     : 0;
   const laborRetireMo = laborRetireAtRetire * swr / 12;
 
-  // 每月總投入上限：超過上限時，三者按同比例縮小
   const monthlyStockContrib0 = getTotalMonthlyStock();
   function capFn(mc, y, kind) {
     if (!isFinite(monthlyCap) || monthlyCap <= 0) return mc;
@@ -1188,13 +1602,11 @@ function calculate(silent = false) {
     return mc * ratio;
   }
 
-  // 現金資產
   const savingsAtRetire = simulateCash(savingsAssets, monthlySavings, growCash, savingsRate, years, capFn, 'sav');
   const depositAtRetire = simulateCash(depositAssets, monthlyDeposit, growCash, depositRate, years, capFn, 'dep');
   const cashAtRetire    = savingsAtRetire + depositAtRetire;
   const cashMonthly     = cashAtRetire * swr / 12;
 
-  // 股市資產（含起始資產）
   const monthlyStockContrib = monthlyStockContrib0;
   const annualReturn = getWeightedReturn(0);
   const base = simulateStock(currentAssets, monthlyStockContrib, growStock, annualReturn, years, inflation, capFn);
@@ -1253,7 +1665,7 @@ function calculate(silent = false) {
   document.getElementById('bd-labor-retire-final').textContent = sym + fmt(laborRetireAtRetire, currency);
   document.getElementById('bd-savings-final').textContent      = sym + fmt(savingsAtRetire, currency);
   document.getElementById('bd-deposit-final').textContent      = sym + fmt(depositAtRetire, currency);
-  document.getElementById('bd-cashmo').textContent             = sym + fmt(cashMonthly, currency);
+  document.getElementById('bd-cashmo').textContent              = sym + fmt(cashMonthly, currency);
   document.getElementById('bd-stock-monthly-contrib').textContent = sym + fmt(monthlyStockContrib, currency) + T[lang].perMonth;
   const retireYears = Math.max(1, lifeExpect - retireAge);
   document.getElementById('bd-life').textContent = retireYears + (lang === 'zh' ? ` 年（${retireAge}→${lifeExpect}）` : ` yrs (${retireAge}→${lifeExpect})`);
@@ -1269,7 +1681,6 @@ function calculate(silent = false) {
   const sLabels = [], sOpt = [], sBase = [], sPes = [];
   let depletedB = null;
 
-  // 存款桶（含活存、定存、勞退一次提撥）— 以加權保守利率成長，逐年提領
   const cashTotalAtRetire = cashAtRetire + laborRetireAtRetire;
   const cashBlendedRate = cashTotalAtRetire > 0
     ? (savingsAtRetire * savingsRate + depositAtRetire * depositRate + laborRetireAtRetire * 0.02) / cashTotalAtRetire
@@ -1292,7 +1703,6 @@ function calculate(silent = false) {
     const extraThisYear     = extraIncomeNominal * Math.pow(1 + inflation, y);
     const targetCashDraw    = (cashMonthly + laborRetireMo) * 12 * Math.pow(1 + inflation, y);
 
-    // 存款先提領（以餘額為上限）
     const drawO = Math.min(Math.max(0, cashBalO), targetCashDraw);
     const drawB = Math.min(Math.max(0, cashBalB), targetCashDraw);
     const drawP = Math.min(Math.max(0, cashBalP), targetCashDraw);
@@ -1306,7 +1716,7 @@ function calculate(silent = false) {
     const netP = Math.max(0, baseNet - drawP);
 
     bO = bO * (1 + getWeightedReturn(scenarioOffset))  - netO;
-    bB = bB * (1 + annualReturn)                       - netB;
+    bB = bB * (1 + annualReturn)                        - netB;
     bP = bP * (1 + getWeightedReturn(-scenarioOffset)) - netP;
   }
 
@@ -1328,10 +1738,6 @@ function calculate(silent = false) {
     document.getElementById('calc-btn-wrap').style.display = 'none';
     document.getElementById('recalc-btn-wrap').style.display = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    res.querySelectorAll('.fade-in').forEach((el, i) => {
-      el.style.animation = 'none';
-      setTimeout(() => { el.style.animation = `fadeUp .4s ease ${i * .06}s both`; }, 10);
-    });
   }
 }
 
@@ -1347,12 +1753,12 @@ function showSettings() {
 const CHART_OPTS = (currency, sym) => ({
   responsive: true, interaction: { intersect: false, mode: 'index' },
   plugins: {
-    legend: { labels: { color: '#9c9188', font: { family: "Raleway,'Noto Sans TC',sans-serif", size: 11 }, boxWidth: 14 } },
+    legend: { labels: { color: '#000', font: { family: "'Share Tech Mono', monospace", size: 11 }, boxWidth: 12 } },
     tooltip: {
-      backgroundColor: '#f7f3ec', borderColor: 'rgba(0,0,0,0.1)', borderWidth: 1,
-      titleColor: '#7a9aa8', bodyColor: '#191510',
-      titleFont: { family: "'Inter', 'Noto Sans TC', sans-serif", size: 12, weight: 600 },
-      bodyFont: { family: "'Inter', 'Noto Sans TC', sans-serif", size: 12, weight: 400 },
+      backgroundColor: '#f0f0f0', borderColor: '#000', borderWidth: 1,
+      titleColor: '#000080', bodyColor: '#000',
+      titleFont: { family: "'Press Start 2P', monospace", size: 9 },
+      bodyFont: { family: "'Share Tech Mono', monospace", size: 12 },
       callbacks: {
         title: items => (lang === 'zh' ? '年齡 ' : 'Age ') + items[0].label,
         label: item => ` ${item.dataset.label}: ${sym}${fmt(item.raw, currency)}`,
@@ -1360,22 +1766,22 @@ const CHART_OPTS = (currency, sym) => ({
     }
   },
   scales: {
-    x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#9c9188', font: { family: "Inter,'Noto Sans TC',sans-serif", size: 10 } } },
-    y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#9c9188', font: { family: "Inter,'Noto Sans TC',sans-serif", size: 10 }, callback: v => sym + fmt(v, currency) } }
+    x: { grid: { color: 'rgba(0,0,0,0.1)' }, ticks: { color: '#000', font: { family: "'Share Tech Mono', monospace", size: 10 } } },
+    y: { grid: { color: 'rgba(0,0,0,0.1)' }, ticks: { color: '#000', font: { family: "'Share Tech Mono', monospace", size: 10 }, callback: v => sym + fmt(v, currency) } }
   }
 });
 
 function drawGrowthChart(ages, optD, baseD, pesD, realD, contribD, currency, sym, ds) {
   const ctx = document.getElementById('growthChart').getContext('2d');
   if (growthChartInst) growthChartInst.destroy();
-  Chart.defaults.font.family = "'Inter', 'Noto Sans TC', sans-serif";
+  Chart.defaults.font.family = "'Share Tech Mono', monospace";
   growthChartInst = new Chart(ctx, {
     type: 'line', data: { labels: ages, datasets: [
-      { label: ds.pes,    data: pesD,    borderColor: '#8a2622', backgroundColor: 'rgba(138,38,34,0.16)',   fill: 'origin', borderWidth: 1.5, tension: .4, pointRadius: 0, pointHoverRadius: 4, borderDash: [4,3] },
-      { label: ds.base,   data: baseD,   borderColor: '#9db9c3', backgroundColor: 'rgba(157,185,195,0.28)', fill: '-1',     borderWidth: 2.5, tension: .4, pointRadius: 0, pointHoverRadius: 5 },
-      { label: ds.opt,    data: optD,    borderColor: '#dea377', backgroundColor: 'rgba(222,163,119,0.22)', fill: '-1',     borderWidth: 1.5, tension: .4, pointRadius: 0, pointHoverRadius: 4 },
-      { label: ds.real,   data: realD,   borderColor: '#9c9188', backgroundColor: 'transparent',            fill: false,    borderWidth: 1,   tension: .4, pointRadius: 0, borderDash: [2,4] },
-      { label: ds.contrib,data: contribD,borderColor: '#c8c0b4', backgroundColor: 'transparent',            fill: false,    borderWidth: 1,   tension: .4, pointRadius: 0 },
+      { label: ds.pes,    data: pesD,    borderColor: '#cc0000', backgroundColor: 'rgba(204,0,0,0.15)',   fill: 'origin', borderWidth: 1.5, tension: 0, pointRadius: 0, borderDash: [4,3] },
+      { label: ds.base,   data: baseD,   borderColor: '#000080', backgroundColor: 'rgba(0,0,128,0.15)', fill: '-1',     borderWidth: 2.5, tension: 0, pointRadius: 0 },
+      { label: ds.opt,    data: optD,    borderColor: '#e69138', backgroundColor: 'rgba(230,145,56,0.15)', fill: '-1',     borderWidth: 1.5, tension: 0, pointRadius: 0 },
+      { label: ds.real,   data: realD,   borderColor: '#555555', backgroundColor: 'transparent',            fill: false,     borderWidth: 1,   tension: 0, pointRadius: 0, borderDash: [2,4] },
+      { label: ds.contrib,data: contribD,borderColor: '#888888', backgroundColor: 'transparent',            fill: false,     borderWidth: 1,   tension: 0, pointRadius: 0 },
     ]}, options: CHART_OPTS(currency, sym)
   });
 }
@@ -1409,15 +1815,14 @@ function drawSustainChart(labels, optD, baseD, pesD, currency, sym, ds) {
   if (sustainChartInst) sustainChartInst.destroy();
   sustainChartInst = new Chart(ctx, {
     type: 'line', data: { labels, datasets: [
-      { label: ds.pes,  data: pesD,  borderColor: '#8a2622', backgroundColor: 'rgba(138,38,34,0.16)',   fill: 'origin', borderWidth: 1.5, tension: .4, pointRadius: 0, pointHoverRadius: 4, borderDash: [4,3] },
-      { label: ds.base, data: baseD, borderColor: '#9db9c3', backgroundColor: 'rgba(157,185,195,0.28)', fill: '-1',     borderWidth: 2,   tension: .4, pointRadius: 0, pointHoverRadius: 5 },
-      { label: ds.opt,  data: optD,  borderColor: '#dea377', backgroundColor: 'rgba(222,163,119,0.22)', fill: '-1',     borderWidth: 1.5, tension: .4, pointRadius: 0, pointHoverRadius: 4 },
+      { label: ds.pes,  data: pesD,  borderColor: '#cc0000', backgroundColor: 'rgba(204,0,0,0.15)',   fill: 'origin', borderWidth: 1.5, tension: 0, pointRadius: 0, borderDash: [4,3] },
+      { label: ds.base, data: baseD, borderColor: '#000080', backgroundColor: 'rgba(0,0,128,0.15)', fill: '-1',     borderWidth: 2,   tension: 0, pointRadius: 0 },
+      { label: ds.opt,  data: optD,  borderColor: '#e69138', backgroundColor: 'rgba(230,145,56,0.15)', fill: '-1',     borderWidth: 1.5, tension: 0, pointRadius: 0 },
     ]}, options: CHART_OPTS(currency, sym)
   });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 偵測 file:// 協定，顯示警告
   if (location.protocol === 'file:') {
     document.getElementById('file-protocol-warn').style.display = 'block';
   }
@@ -1425,7 +1830,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateLaborPreview();
   applyLang('zh');
   fetchAllPrices();
-  // 自動更新 USD/TWD 匯率
   fetchUsdTwdRate().then(r => {
     if (r) {
       const el = document.getElementById('exchangeRate');
